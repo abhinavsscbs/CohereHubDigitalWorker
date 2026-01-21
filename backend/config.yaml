@@ -1,0 +1,74 @@
+app:
+  name: IFRS Backend API
+  env: production
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  debug: false
+
+cors:
+  enabled: true
+  origins:
+    - http://your-frontend-host:5173   # set to your on‑prem frontend origin
+
+logging:
+  level: INFO
+  unbuffered: true
+
+session:
+  provider: redis_or_file
+  redis:
+    url: redis://your-redis-host:6379/0
+    key_prefix: ifrs:history:
+  file:
+    dir: /opt/ifrs/backend/chat_history
+
+rag:
+  seed: 42
+  embedder:
+    model_name: /opt/ifrs/models/all-MiniLM-L6-v2
+    device: cpu
+  thresholds:
+    stage_1: 0.5
+    stage_2_percentile: 0.30
+  db_defaults: &db_defaults
+    score_threshold: 0.5
+  db_paths:
+    - <<: *db_defaults
+      name: IFRS A
+      path: /opt/ifrs/IFRS_A_embed_test
+    - <<: *db_defaults
+      name: IFRS B
+      path: /opt/ifrs/IFRS_B_embed_test/IFRS_B_embed_test
+    - <<: *db_defaults
+      name: IFRS C
+      path: /opt/ifrs/IFRS_C_embed_test
+    - <<: *db_defaults
+      name: EY
+      path: /opt/ifrs/EY_embed_test
+    - <<: *db_defaults
+      name: PwC
+      path: /opt/ifrs/PwC_embed_test
+  replace_excel_path: /opt/ifrs/Replacement_data.xlsx
+
+llm:
+  endpoint_url: http://your-onprem-llm-host:8000/inference
+  api_key: ""           # set if your endpoint requires it
+  timeout_sec: 120
+  verify_ssl: false     # true if using internal TLS
+  models:
+    mini: cohere-mini
+    full: cohere-full
+    extractor: cohere-extractor
+    relevance: cohere-relevance
+  temperatures:
+    mini: 0
+    full: 0
+    extractor: 0
+    relevance: 0
+  max_tokens:
+    mini: 30000
+    full: 32000
+    extractor: 32000
+    relevance: 8000
